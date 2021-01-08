@@ -27,6 +27,44 @@ class database{
     } 
   }
 
+  public function InsertTabellen($email, $voornaam, $achternaam, $tussenvoegsel, $geboortedatum, $username, $password){
+      try{
+        $this->pdo->beginTransaction();
+
+      $sql2 = "INSERT INTO account(id, usertype_id, username, email, password)
+                      VALUES(NULL, 2, :username, :email, PASSWORD(:password));";
+
+      $passwordhash = password_hash($password, PASSWORD_DEFAULT);
+      // $passwordhash = md5($password);
+
+        $stmt = $this->pdo->prepare($sql2);
+        
+        $stmt->execute(['username' => $username, 'email' => $email, 'password' => $password]);
+            
+            $id = $this->pdo->lastInsertId();
+        
+        $sqlpersoon = "INSERT INTO persoon(id, voornaam, achternaam, tussenvoegsel, geboortedatum, account_id) VALUES (NULL, :voornaam, :achternaam, :tussenvoegsel, :geboortedatum, :account_id);";  
+
+        $stmt = $this->pdo->prepare($sqlpersoon);
+      
+      $stmt->execute(['voornaam' => $voornaam, 'achternaam' => $achternaam, 'tussenvoegsel' => $tussenvoegsel,     'geboortedatum' => $geboortedatum, 'account_id' => $id]);
+      
+      $this->pdo->commit();
+
+        header("Location: loginCustomer.php");
+    
+      // echo "Commit succesfull";
+
+      // echo "<hr>";
+
+      // echo "voornaam = $voornaam | tussenvoegsel = $tussenvoegsel | achternaam = $achternaam | email =  $email | geboortedatum =  $geboortedatum | username =  $username | password = $password | passwordhash = 
+      //          $passwordhash;";
+      
+      }catch(PDOException $e){
+      $this->pdo->rollback();
+        echo "failed: ". $e->getMessage();
+      }
+  }
 
   public function loginadmin($gebruikersnaam, $wachtwoord){
     try{
